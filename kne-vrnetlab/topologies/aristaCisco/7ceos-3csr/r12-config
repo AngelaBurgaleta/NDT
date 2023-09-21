@@ -1,0 +1,31 @@
+! Interfaces configuration
+
+! GigabitEthernet2 
+interface GigabitEthernet2
+ ip address 192.168.13.12 255.255.255.0
+ no shutdown
+!
+! GigabitEthernet3 
+interface GigabitEthernet3
+ ip address 10.0.15.12 255.255.255.0
+ no shutdown
+!
+
+! GigabitEthernet4
+interface GigabitEthernet4
+ ip address 192.168.14.12 255.255.255.0
+ no shutdown
+!
+! GigabitEthernet5
+interface GigabitEthernet5
+ ip address 10.0.16.12 255.255.255.0
+ no shutdown
+!
+router ospf 1
+   router-id 12.12.12.12
+   network 192.168.13.0 0.0.0.255 area 0
+   network 192.168.14.0 0.0.0.255 area 0
+   network 10.0.15.0 0.0.0.255 area 0
+   network 10.0.16.0 0.0.0.255 area 0
+!
+!!! END CONFIG !!!

@@ -1,0 +1,299 @@
+name: 10ceos
+nodes:
+  - name: server1
+    vendor: HOST
+  - name: server2
+    vendor: HOST
+  - name: server3
+    vendor: HOST
+    
+  - name: client1
+    vendor: HOST
+  - name: client2
+    vendor: HOST
+  - name: client3
+    vendor: HOST    
+    
+  - name: r1
+    vendor: ARISTA
+    model: "ceos"
+    os: "eos"
+    config: 
+      config_path: "/mnt/flash"
+      config_file: "startup-config"
+      file: "r1-config"
+      cert: 
+        self_signed: 
+          cert_name: "gnmiCert.pem"
+          key_name: "gnmiCertKey.pem"
+          key_size: 4096  
+    services:
+      22:
+        name: ssh
+        inside: 22	
+
+  - name: r2
+    vendor: ARISTA
+    model: "ceos"
+    os: "eos"
+    config: 
+      config_path: "/mnt/flash"
+      config_file: "startup-config"
+      file: "r2-config"
+      cert: 
+        self_signed: 
+          cert_name: "gnmiCert.pem"
+          key_name: "gnmiCertKey.pem"
+          key_size: 4096  
+    services:
+      22:
+        name: ssh
+        inside: 22
+           
+  - name: r3
+    vendor: ARISTA
+    model: "ceos"
+    os: "eos"
+    config: 
+      config_path: "/mnt/flash"
+      config_file: "startup-config"
+      file: "r3-config"
+      cert: 
+        self_signed: 
+          cert_name: "gnmiCert.pem"
+          key_name: "gnmiCertKey.pem"
+          key_size: 4096  
+    services:
+      22:
+        name: ssh
+        inside: 22
+        
+  - name: r4
+    vendor: ARISTA
+    model: "ceos"
+    os: "eos"
+    config: 
+      config_path: "/mnt/flash"
+      config_file: "startup-config"
+      file: "r4-config"
+      cert: 
+        self_signed: 
+          cert_name: "gnmiCert.pem"
+          key_name: "gnmiCertKey.pem"
+          key_size: 4096  
+    services:
+      22:
+        name: ssh
+        inside: 22
+
+  - name: r5
+    vendor: ARISTA
+    model: "ceos"
+    os: "eos"
+    config: 
+      config_path: "/mnt/flash"
+      config_file: "startup-config"
+      file: "r5-config"
+      cert: 
+        self_signed: 
+          cert_name: "gnmiCert.pem"
+          key_name: "gnmiCertKey.pem"
+          key_size: 4096  
+    services:
+      22:
+        name: ssh
+        inside: 22
+              
+  - name: r6
+    vendor: ARISTA
+    model: "ceos"
+    os: "eos"
+    config: 
+      config_path: "/mnt/flash"
+      config_file: "startup-config"
+      file: "r6-config"
+      cert: 
+        self_signed: 
+          cert_name: "gnmiCert.pem"
+          key_name: "gnmiCertKey.pem"
+          key_size: 4096  
+    services:
+      22:
+        name: ssh
+        inside: 22  
+        
+  - name: r7
+    vendor: ARISTA
+    model: "ceos"
+    os: "eos"
+    config: 
+      config_path: "/mnt/flash"
+      config_file: "startup-config"
+      file: "r7-config"
+      cert: 
+        self_signed: 
+          cert_name: "gnmiCert.pem"
+          key_name: "gnmiCertKey.pem"
+          key_size: 4096  
+    services:
+      22:
+        name: ssh
+        inside: 22
+        
+  - name: r11
+    vendor: ARISTA
+    model: "ceos"
+    os: "eos"
+    config: 
+      config_path: "/mnt/flash"
+      config_file: "startup-config"
+      file: "r11-config"
+      cert: 
+        self_signed: 
+          cert_name: "gnmiCert.pem"
+          key_name: "gnmiCertKey.pem"
+          key_size: 4096  
+    services:
+      22:
+        name: ssh
+        inside: 22
+
+  - name: r12
+    vendor: ARISTA
+    model: "ceos"
+    os: "eos"
+    config: 
+      config_path: "/mnt/flash"
+      config_file: "startup-config"
+      file: "r12-config"
+      cert: 
+        self_signed: 
+          cert_name: "gnmiCert.pem"
+          key_name: "gnmiCertKey.pem"
+          key_size: 4096  
+    services:
+      22:
+        name: ssh
+        inside: 22
+        
+  - name: r13
+    vendor: ARISTA
+    model: "ceos"
+    os: "eos"
+    config: 
+      config_path: "/mnt/flash"
+      config_file: "startup-config"
+      file: "r13-config"
+      cert: 
+        self_signed: 
+          cert_name: "gnmiCert.pem"
+          key_name: "gnmiCertKey.pem"
+          key_size: 4096  
+    services:
+      22:
+        name: ssh
+        inside: 22
+        
+  
+links:
+  - a_node: "r11"
+    a_int: "eth2"
+    z_node: "r1"
+    z_int: "eth4"
+    
+  - a_node: "r11"
+    a_int: "eth3"
+    z_node: "r4"
+    z_int: "eth3"
+    
+  - a_node: "r11"
+    a_int: "eth4"
+    z_node: "server1"
+    z_int: "eth1"
+    
+  - a_node: "r11"
+    a_int: "eth5"
+    z_node: "client1"
+    z_int: "eth1"
+    
+  - a_node: "r1"
+    a_int: "eth3"
+    z_node: "r2"
+    z_int: "eth3"
+    
+  - a_node: "r1"
+    a_int: "eth2"
+    z_node: "r4"
+    z_int: "eth2"
+    
+  - a_node: "r4"
+    a_int: "eth4"
+    z_node: "r6"
+    z_int: "eth4"
+    
+  - a_node: "r6"
+    a_int: "eth3"
+    z_node: "r5"
+    z_int: "eth2"
+    
+    
+  - a_node: "r6"
+    a_int: "eth2"
+    z_node: "r7"
+    z_int: "eth2"
+    
+  - a_node: "r5"
+    a_int: "eth3"
+    z_node: "r2"
+    z_int: "eth5"
+    
+  - a_node: "r2"
+    a_int: "eth2"
+    z_node: "r12"
+    z_int: "eth2"
+    
+  - a_node: "r2"
+    a_int: "eth4"
+    z_node: "r3"
+    z_int: "eth4"
+    
+  - a_node: "r3"
+    a_int: "eth3"
+    z_node: "r7"
+    z_int: "eth4"
+    
+  - a_node: "r3"
+    a_int: "eth2"
+    z_node: "r13"
+    z_int: "eth2"
+    
+  - a_node: "r3"
+    a_int: "eth5"
+    z_node: "r12"
+    z_int: "eth4"
+    
+  - a_node: "r7"
+    a_int: "eth3"
+    z_node: "r13"
+    z_int: "eth3"
+    
+  - a_node: "r12"
+    a_int: "eth5"
+    z_node: "server2"
+    z_int: "eth1"
+
+  - a_node: "r12"
+    a_int: "eth3"
+    z_node: "client2"
+    z_int: "eth1"
+    
+  - a_node: "r13"
+    a_int: "eth4"
+    z_node: "server3"
+    z_int: "eth1"
+    
+  - a_node: "r13"
+    a_int: "eth5"
+    z_node: "client3"
+    z_int: "eth1"
+    

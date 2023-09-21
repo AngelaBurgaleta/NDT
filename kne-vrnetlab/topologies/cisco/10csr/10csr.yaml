@@ -1,0 +1,400 @@
+name: 10-csr
+nodes:
+  - name: server1
+    vendor: HOST
+  - name: server2
+    vendor: HOST
+  - name: server3
+    vendor: HOST
+    
+  - name: client1
+    vendor: HOST
+  - name: client2
+    vendor: HOST
+  - name: client3
+    vendor: HOST    
+    
+  - name: r1
+    vendor: CISCO
+    os: "ios-xe"
+    config:
+      config_path: "/"
+      config_file: "iosxe_config.txt"
+      file: "r1-config"
+      image: "docker.io/vrnetlab/vr-csr:17.03.06"
+      cert:
+        self_signed:
+          cert_name: "gnmiCert.pem"
+          key_name: "gnmiCertKey.pem"
+          key_size: 4096
+    interfaces:
+      eth2:
+        name: "GigabitEthernet2"
+      eth3:
+        name: "GigabitEthernet3"
+      eth4:
+        name: "GigabitEthernet4"
+    services:
+      22:
+        name: ssh
+        inside: 22
+      830:
+        name: netconf
+        inside: 830
+
+  - name: r2
+    vendor: CISCO
+    os: "ios-xe"
+    config:
+      config_path: "/"
+      config_file: "iosxe_config.txt"
+      file: "r2-config"
+      image: "docker.io/vrnetlab/vr-csr:17.03.06"
+      cert:
+        self_signed:
+          cert_name: "gnmiCert.pem"
+          key_name: "gnmiCertKey.pem"
+          key_size: 4096
+    interfaces:
+      eth2:
+        name: "GigabitEthernet2"
+      eth3:
+        name: "GigabitEthernet3"
+      eth4:
+        name: "GigabitEthernet4"
+      eth5:
+        name: "GigabitEthernet5"
+    services:
+      22:
+        name: ssh
+        inside: 22
+      830:
+        name: netconf
+        inside: 830
+  - name: r3
+    vendor: CISCO
+    os: "ios-xe"
+    config:
+      config_path: "/"
+      config_file: "iosxe_config.txt"
+      file: "r3-config"
+      image: "docker.io/vrnetlab/vr-csr:17.03.06"
+      cert:
+        self_signed:
+          cert_name: "gnmiCert.pem"
+          key_name: "gnmiCertKey.pem"
+          key_size: 4096
+    interfaces:
+      eth2:
+        name: "GigabitEthernet2"
+      eth3:
+        name: "GigabitEthernet3"
+      eth4:
+        name: "GigabitEthernet4"
+      eth5:
+        name: "GigabitEthernet5"
+    services:
+      22:
+        name: ssh
+        inside: 22
+      830:
+        name: netconf
+        inside: 830
+  - name: r4
+    vendor: CISCO
+    os: "ios-xe"
+    config:
+      config_path: "/"
+      config_file: "iosxe_config.txt"
+      file: "r4-config"
+      image: "docker.io/vrnetlab/vr-csr:17.03.06"
+      cert:
+        self_signed:
+          cert_name: "gnmiCert.pem"
+          key_name: "gnmiCertKey.pem"
+          key_size: 4096
+    interfaces:
+      eth2:
+        name: "GigabitEthernet2"
+      eth3:
+        name: "GigabitEthernet3"
+      eth4:
+        name: "GigabitEthernet4"
+    services:
+      22:
+        name: ssh
+        inside: 22
+      830:
+        name: netconf
+        inside: 830
+  - name: r5
+    vendor: CISCO
+    os: "ios-xe"
+    config:
+      config_path: "/"
+      config_file: "iosxe_config.txt"
+      file: "r5-config"
+      image: "docker.io/vrnetlab/vr-csr:17.03.06"
+      cert:
+        self_signed:
+          cert_name: "gnmiCert.pem"
+          key_name: "gnmiCertKey.pem"
+          key_size: 4096
+    interfaces:
+      eth2:
+        name: "GigabitEthernet2"
+      eth3:
+        name: "GigabitEthernet3"
+    services:
+      22:
+        name: ssh
+        inside: 22
+      830:
+        name: netconf
+        inside: 830
+  - name: r6
+    vendor: CISCO
+    os: "ios-xe"
+    config:
+      config_path: "/"
+      config_file: "iosxe_config.txt"
+      file: "r6-config"
+      image: "docker.io/vrnetlab/vr-csr:17.03.06"
+      cert:
+        self_signed:
+          cert_name: "gnmiCert.pem"
+          key_name: "gnmiCertKey.pem"
+          key_size: 4096
+    interfaces:
+      eth2:
+        name: "GigabitEthernet2"
+      eth3:
+        name: "GigabitEthernet3"
+      eth4:
+        name: "GigabitEthernet4"
+    services:
+      22:
+        name: ssh
+        inside: 22
+      830:
+        name: netconf
+        inside: 830
+  - name: r7
+    vendor: CISCO
+    os: "ios-xe"
+    config:
+      config_path: "/"
+      config_file: "iosxe_config.txt"
+      file: "r7-config"
+      image: "docker.io/vrnetlab/vr-csr:17.03.06"
+      cert:
+        self_signed:
+          cert_name: "gnmiCert.pem"
+          key_name: "gnmiCertKey.pem"
+          key_size: 4096
+    interfaces:
+      eth2:
+        name: "GigabitEthernet2"
+      eth3:
+        name: "GigabitEthernet3"
+      eth4:
+        name: "GigabitEthernet4"
+    services:
+      22:
+        name: ssh
+        inside: 22
+      830:
+        name: netconf
+        inside: 830
+  - name: r11
+    vendor: CISCO
+    os: "ios-xe"
+    config:
+      config_path: "/"
+      config_file: "iosxe_config.txt"
+      file: "r11-config"
+      image: "docker.io/vrnetlab/vr-csr:17.03.06"
+      cert:
+        self_signed:
+          cert_name: "gnmiCert.pem"
+          key_name: "gnmiCertKey.pem"
+          key_size: 4096
+    interfaces:
+      eth2:
+        name: "GigabitEthernet2"
+      eth3:
+        name: "GigabitEthernet3"
+      eth4:
+        name: "GigabitEthernet4"
+      eth5:
+        name: "GigabitEthernet5"
+
+    services:
+      22:
+        name: ssh
+        inside: 22
+      830:
+        name: netconf
+        inside: 830
+        
+  - name: r12
+    vendor: CISCO
+    os: "ios-xe"
+    config:
+      config_path: "/"
+      config_file: "iosxe_config.txt"
+      file: "r12-config"
+      image: "docker.io/vrnetlab/vr-csr:17.03.06"
+      cert:
+        self_signed:
+          cert_name: "gnmiCert.pem"
+          key_name: "gnmiCertKey.pem"
+          key_size: 4096
+    interfaces:
+      eth2:
+        name: "GigabitEthernet2"
+      eth3:
+        name: "GigabitEthernet3"
+      eth4:
+        name: "GigabitEthernet4"
+      eth5:
+        name: "GigabitEthernet5"
+    services:
+      22:
+        name: ssh
+        inside: 22
+      830:
+        name: netconf
+        inside: 830
+  - name: r13
+    vendor: CISCO
+    os: "ios-xe"
+    config:
+      config_path: "/"
+      config_file: "iosxe_config.txt"
+      file: "r13-config"
+      image: "docker.io/vrnetlab/vr-csr:17.03.06"
+      cert:
+        self_signed:
+          cert_name: "gnmiCert.pem"
+          key_name: "gnmiCertKey.pem"
+          key_size: 4096
+    interfaces:
+      eth2:
+        name: "GigabitEthernet2"
+      eth3:
+        name: "GigabitEthernet3"
+      eth4:
+        name: "GigabitEthernet4"
+      eth5:
+        name: "GigabitEthernet5"
+    services:
+      22:
+        name: ssh
+        inside: 22
+      830:
+        name: netconf
+        inside: 830
+
+links:
+  - a_node: "r11"
+    a_int: "eth2"
+    z_node: "r1"
+    z_int: "eth4"
+    
+  - a_node: "r11"
+    a_int: "eth3"
+    z_node: "r4"
+    z_int: "eth3"
+    
+  - a_node: "r11"
+    a_int: "eth4"
+    z_node: "server1"
+    z_int: "eth1"
+    
+  - a_node: "r11"
+    a_int: "eth5"
+    z_node: "client1"
+    z_int: "eth1"
+    
+  - a_node: "r1"
+    a_int: "eth3"
+    z_node: "r2"
+    z_int: "eth3"
+    
+  - a_node: "r1"
+    a_int: "eth2"
+    z_node: "r4"
+    z_int: "eth2"
+    
+  - a_node: "r4"
+    a_int: "eth4"
+    z_node: "r6"
+    z_int: "eth4"
+    
+  - a_node: "r6"
+    a_int: "eth3"
+    z_node: "r5"
+    z_int: "eth2"
+    
+    
+  - a_node: "r6"
+    a_int: "eth2"
+    z_node: "r7"
+    z_int: "eth2"
+    
+  - a_node: "r5"
+    a_int: "eth3"
+    z_node: "r2"
+    z_int: "eth5"
+    
+  - a_node: "r2"
+    a_int: "eth2"
+    z_node: "r12"
+    z_int: "eth2"
+    
+  - a_node: "r2"
+    a_int: "eth4"
+    z_node: "r3"
+    z_int: "eth4"
+    
+  - a_node: "r3"
+    a_int: "eth3"
+    z_node: "r7"
+    z_int: "eth4"
+    
+  - a_node: "r3"
+    a_int: "eth2"
+    z_node: "r13"
+    z_int: "eth2"
+    
+  - a_node: "r3"
+    a_int: "eth5"
+    z_node: "r12"
+    z_int: "eth4"
+    
+  - a_node: "r7"
+    a_int: "eth3"
+    z_node: "r13"
+    z_int: "eth3"
+    
+  - a_node: "r12"
+    a_int: "eth5"
+    z_node: "server2"
+    z_int: "eth1"
+
+  - a_node: "r12"
+    a_int: "eth3"
+    z_node: "client2"
+    z_int: "eth1"
+    
+  - a_node: "r13"
+    a_int: "eth4"
+    z_node: "server3"
+    z_int: "eth1"
+    
+  - a_node: "r13"
+    a_int: "eth5"
+    z_node: "client3"
+    z_int: "eth1"
+    

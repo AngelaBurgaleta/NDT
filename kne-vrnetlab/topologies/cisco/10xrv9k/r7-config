@@ -1,0 +1,142 @@
+!! IOS XR Configuration 7.5.1
+!! Last configuration change at Wed Nov 30 09:12:36 2022 by cisco
+!
+hostname xrv9k-r7
+group ISIS_TI-LFA
+ router isis '.*'
+  interface 'Gi.*'
+   address-family ipv4 unicast
+    fast-reroute per-prefix
+    fast-reroute per-prefix ti-lfa
+   !
+   address-family ipv6 unicast
+    fast-reroute per-prefix
+    fast-reroute per-prefix ti-lfa
+   !
+  !
+ !
+end-group
+service timestamps log datetime msec
+service timestamps debug datetime msec
+domain lookup disable
+username cisco
+ group root-lr
+ group cisco-support
+ secret 10 $6$Autd90SSuWbi690.$guN0H5al2G2QFEW3hJ8s4VVWMTB0cq3rQOnOYx.O/2LGhIL.kK7fgbaLspuVkTntc5u5JSMEisjgZWmfDo1uk0
+!
+cdp
+address-family ipv4 unicast
+!
+address-family ipv6 unicast
+!
+call-home
+ service active
+ contact smart-licensing
+ profile CiscoTAC-1
+  active
+  destination transport-method email disable
+  destination transport-method http
+ !
+!
+interface Loopback0
+ description Loopback
+ ipv4 address 1.1.1.7 255.255.255.255
+ ipv6 address 2001::1:1:1:7/128
+  no shutdown
+!
+interface GigabitEthernet0/0/0/0
+ description to xrvr-3
+ cdp
+ ipv4 address 99.3.7.7 255.255.255.0
+ ipv6 address 2001::99:3:7:7/112
+  no shutdown
+!
+interface GigabitEthernet0/0/0/1
+ shutdown
+!
+interface GigabitEthernet0/0/0/2
+ description to xrvr-6
+ cdp
+ ipv4 address 99.6.7.7 255.255.255.0
+ ipv6 address 2001::99:6:7:7/112
+  no shutdown
+!
+interface GigabitEthernet0/0/0/3
+ description to xrvr-9
+ cdp
+ ipv4 address 99.7.12.7 255.255.255.0
+ ipv6 address 2001::99:7:12:7/112
+  no shutdown
+!
+router static
+ address-family ipv4 unicast
+  0.0.0.0/0 10.95.90.1
+  10.16.0.0/16 198.18.1.1
+  10.64.0.0/16 198.18.1.1
+  198.18.128.0/18 198.18.1.1
+ !
+!
+router isis 1
+ is-type level-2-only
+ net 49.0001.0000.0000.0007.00
+ address-family ipv4 unicast
+  metric-style wide
+  segment-routing mpls
+ !
+ address-family ipv6 unicast
+  metric-style wide
+  segment-routing mpls
+ !
+ interface Loopback0
+  passive
+  address-family ipv4 unicast
+   prefix-sid absolute 16007
+  !
+  address-family ipv6 unicast
+   prefix-sid absolute 17007
+  !
+ !
+ interface GigabitEthernet0/0/0/0
+  point-to-point
+  address-family ipv4 unicast
+   fast-reroute per-prefix
+   fast-reroute per-prefix ti-lfa
+  !
+  address-family ipv6 unicast
+   fast-reroute per-prefix
+   fast-reroute per-prefix ti-lfa
+  !
+ !
+ interface GigabitEthernet0/0/0/2
+  point-to-point
+  address-family ipv4 unicast
+   fast-reroute per-prefix
+   fast-reroute per-prefix ti-lfa
+  !
+  address-family ipv6 unicast
+   fast-reroute per-prefix
+   fast-reroute per-prefix ti-lfa
+  !
+ !
+ interface GigabitEthernet0/0/0/3
+  point-to-point
+  address-family ipv4 unicast
+   fast-reroute per-prefix
+   fast-reroute per-prefix ti-lfa
+   metric 500
+  !
+  address-family ipv6 unicast
+   fast-reroute per-prefix
+   fast-reroute per-prefix ti-lfa
+   metric 500
+  !
+ !
+!
+mpls oam
+!
+segment-routing
+!
+ssh timeout 20
+ssh server session-limit 30
+ssh server v2
+

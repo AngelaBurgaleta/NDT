@@ -1,0 +1,35 @@
+! Command: show running-config
+! device: r12 (cEOSLab, EOS-4.26.1F (engineering build))
+!
+hostname r12
+!
+ip routing
+!
+username admin privilege 15 role network-admin secret sha512 $6$YDkKMqrZIRO65B7i$NfH7OT8ujV12S.5q2sH7c7l1AEqhYULt9OSf9/EKaC4S8cNLppS.otHhr0QlC9Kud9Xbt4OdxVOkZiwV/yBV/1
+
+interface Ethernet2
+  ip address 192.168.13.12/24
+  no switchport
+
+!
+interface Ethernet3
+  ip address 10.0.15.12/24
+  no switchport
+!
+!
+interface Ethernet4
+  ip address 192.168.14.12/24
+  no switchport
+!
+!
+interface Ethernet5
+  ip address 10.0.16.12/24
+  no switchport
+!
+router ospf 1
+   router-id 12.12.12.12
+   network 192.168.13.0 0.0.0.255 area 0
+   network 192.168.14.0 0.0.0.255 area 0
+   network 10.0.15.0 0.0.0.255 area 0
+   network 10.0.16.0 0.0.0.255 area 0
+!

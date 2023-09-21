@@ -1,0 +1,13 @@
+!! CISCO CSR1000v r2 configuration !!!
+!
+interface GigabitEthernet2
+ ip address 192.168.1.2 255.255.255.0
+ no shutdown
+!
+interface GigabitEthernet3
+ ip address 10.0.2.1 255.255.255.0
+ no shutdown
+!
+ip route 10.0.1.0 255.255.255.0 192.168.1.1
+!!!
+!!! END CONFIG !!!

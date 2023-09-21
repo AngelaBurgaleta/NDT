@@ -1,0 +1,257 @@
+!! IOS XR Configuration 7.5.1
+!! Last configuration change at Fri Nov 25 22:05:15 2022 by cisco
+!
+hostname xrv9k-r11
+group ISIS_TI-LFA
+ router isis '.*'
+  interface 'Gi.*'
+   address-family ipv4 unicast
+    fast-reroute per-prefix
+    fast-reroute per-prefix ti-lfa
+   !
+   address-family ipv6 unicast
+    fast-reroute per-prefix
+    fast-reroute per-prefix ti-lfa
+   !
+  !
+ !
+end-group
+service timestamps log datetime msec
+service timestamps debug datetime msec
+domain lookup disable
+username cisco
+ group root-lr
+ group cisco-support
+ secret 10 $6$0JL0E0pZ.Y7.7E0.$E518tgtF4sK8I5oMKq/26NICspcttqOFlDxHrGAzKSw0k.FAvP/AjEGMaFShvIfpOfNyw.omQGyaRHj3nPrex1
+!
+cdp
+vrf RED
+ rd 1:11
+ address-family ipv4 unicast
+  import route-target
+   1:1
+  !
+  export route-target
+   1:1
+  !
+ !
+ address-family ipv6 unicast
+  import route-target
+   2:1
+  !
+  export route-target
+   2:1
+  !
+ !
+!
+address-family ipv4 unicast
+!
+address-family ipv6 unicast
+!
+call-home
+ service active
+ contact smart-licensing
+ profile CiscoTAC-1
+  active
+  destination transport-method email disable
+  destination transport-method http
+ !
+!
+ipv4 prefix-list SERVER1
+ 10 permit 111.111.111.0/24 le 32
+!
+interface Loopback0
+ description Loopback
+ ipv4 address 1.1.1.11 255.255.255.255
+ ipv6 address 2001::1:1:1:11/128
+  no shutdown
+!
+interface Loopback100
+ description BGP prefix
+ ipv4 address 100.1.1.11 255.255.255.255
+ ipv6 address 2001::100:1:1:11/128
+  no shutdown
+!
+!
+interface GigabitEthernet0/0/0/0
+ description to xrvr-1
+ cdp
+ ipv4 address 99.1.11.11 255.255.255.0
+ ipv6 address 2001::99:1:11:11/112
+  no shutdown
+!
+interface GigabitEthernet0/0/0/1
+ description to xrvr-5
+ cdp
+ ipv4 address 99.5.11.11 255.255.255.0
+ ipv6 address 2001::99:5:11:11/112
+  no shutdown
+!
+interface GigabitEthernet0/0/0/2
+ description to L3VPN_CE11
+ cdp
+ vrf RED
+ ipv4 address 99.11.99.11 255.255.255.0
+ ipv4 address 98.9.11.11 255.255.255.0 secondary
+ ipv6 address 2001::98:9:11:11/112
+ ipv6 address 2001::99:11:99:11/112
+  no shutdown
+!
+interface GigabitEthernet0/0/0/2.100 l2transport
+ description to L2VPN_CE21
+ encapsulation dot1q 100
+  no shutdown
+!
+interface GigabitEthernet0/0/0/3
+ description to SERVER1
+ cdp
+ ipv4 address 111.111.111.11 255.255.255.0
+  no shutdown
+!
+prefix-set SERVER1
+  111.111.111.0/24 le 32
+end-set
+!
+route-policy CONNECTED-SERVER1
+  if destination in SERVER1 then
+    pass
+  else
+    drop
+  endif
+end-policy
+!
+router static
+ address-family ipv4 unicast
+  0.0.0.0/0 10.95.90.1
+  10.16.0.0/16 198.18.1.1
+  10.64.0.0/16 198.18.1.1
+  198.18.128.0/18 198.18.1.1
+ !
+!
+router isis 1
+ is-type level-2-only
+ net 49.0001.0000.0000.0011.00
+ address-family ipv4 unicast
+  metric-style wide
+  fast-reroute per-prefix tiebreaker node-protecting index 100
+  segment-routing mpls
+ !
+ address-family ipv6 unicast
+  metric-style wide
+  fast-reroute per-prefix tiebreaker node-protecting index 100
+  segment-routing mpls
+ !
+ interface Loopback0
+  passive
+  address-family ipv4 unicast
+   prefix-sid absolute 16011
+  !
+  address-family ipv6 unicast
+   prefix-sid absolute 17011
+  !
+ !
+ interface GigabitEthernet0/0/0/0
+  point-to-point
+  address-family ipv4 unicast
+   fast-reroute per-prefix
+   fast-reroute per-prefix ti-lfa
+   metric 500
+  !
+  address-family ipv6 unicast
+   fast-reroute per-prefix
+   fast-reroute per-prefix ti-lfa
+   metric 500
+  !
+ !
+ interface GigabitEthernet0/0/0/1
+  point-to-point
+  address-family ipv4 unicast
+   fast-reroute per-prefix
+   fast-reroute per-prefix ti-lfa
+   metric 500
+  !
+  address-family ipv6 unicast
+   fast-reroute per-prefix
+   fast-reroute per-prefix ti-lfa
+   metric 500
+  !
+ !
+!
+router bgp 1
+ bgp router-id 1.1.1.11
+ address-family ipv4 unicast
+  network 100.1.1.11/32
+  redistribute connected route-policy CONNECTED-SERVER1
+ !
+ address-family vpnv4 unicast
+ !
+ address-family ipv6 unicast
+  network 2001::100:1:1:11/128
+ !
+ address-family vpnv6 unicast
+ !
+ address-family l2vpn vpls-vpws
+ !
+ neighbor 1.1.1.4
+  remote-as 1
+  description ## to RR Node4 ##
+  update-source Loopback0
+  address-family ipv4 unicast
+  !
+  address-family vpnv4 unicast
+  !
+  address-family vpnv6 unicast
+  !
+  address-family l2vpn vpls-vpws
+  !
+ !
+ neighbor 2001::1.1.1.4
+  remote-as 1
+  description ## to RR Node4 ##
+  update-source Loopback0
+  address-family ipv6 unicast
+  !
+ !
+ neighbor 2001::1:1:1:4
+  remote-as 1
+  description ## to RR Node4 ##
+  update-source Loopback0
+  address-family ipv6 unicast
+  !
+ !
+ vrf RED
+  rd 1:11
+  address-family ipv4 unicast
+   network 98.9.11.0/24
+   network 99.11.99.0/24
+  !
+  address-family ipv6 unicast
+   network 2001::99:11:99:0/112
+  !
+ !
+!
+l2vpn
+ xconnect group XCONNECT_GROUP
+  mp2mp CE21
+   vpn-id 100
+   l2-encapsulation vlan
+   autodiscovery bgp
+    rd auto
+    route-target 1:1
+    signaling-protocol bgp
+     ce-id 21
+      interface GigabitEthernet0/0/0/2.100 remote-ce-id 22
+     !
+    !
+   !
+  !
+ !
+!
+mpls oam
+!
+segment-routing
+!
+ssh timeout 20
+ssh server session-limit 30
+ssh server v2
+

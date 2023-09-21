@@ -1,0 +1,29 @@
+! Command: show running-config
+! device: r1 (cEOSLab, EOS-4.26.1F (engineering build))
+!
+hostname r1
+!
+username admin privilege 15 role network-admin secret sha512 $6$YDkKMqrZIRO65B7i$NfH7OT8ujV12S.5q2sH7c7l1AEqhYULt9OSf9/EKaC4S8cNLppS.otHhr0QlC9Kud9Xbt4OdxVOkZiwV/yBV/1
+!
+interface Ethernet1
+   no switchport
+   ip address 192.168.1.1/24
+!
+interface Ethernet2
+   no switchport  
+   ip address 192.168.3.1/24
+!
+interface Ethernet3
+   no switchport  
+   ip address 192.168.4.1/24
+!
+
+ip routing
+!
+router ospf 1
+   router-id 1.1.1.1
+   network 192.168.1.0 0.0.0.255 area 1
+   network 192.168.3.0 0.0.0.255 area 1
+   network 192.168.4.0 0.0.0.255 area 1
+!
+end
