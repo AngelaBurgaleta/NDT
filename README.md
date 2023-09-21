@@ -1,24 +1,60 @@
-# KNE - vrnetlab
+# Network Digital Twin Protype
 
-Este documento es una guia de como integrar el proyecto [hellt/vrnetlab](https://github.com/hellt/vrnetlab "hellt/vrnetlab") sobre un arquitectura de kubernetes con el proyecto [KNE](https://github.com/openconfig/kne "KNE"), para el despliegue de topologías de red en un clúster multinodo.
+Technical features of the deployment of the NDT prototype can be found in this repository. For this use case the scenario is deployed on a container infrastructure using kubernetes as the management tool. Among all the tools that were considered in the first instance, Kubernetes was finally chosen as it allows dynamic working and efficient management of architectures that consume large computational resources. 
 
-En esta guía se asume que ya se ha creado y configurado un clúster de kubernetes de varios nodos, por lo que se debe verificar que el clúster esté utilizando un complemento de red de pod [compatible with MetalLB](https://metallb.universe.tf/installation/network-addons/).
+In order to emulate the aspects of the behaviour of network equipment without actually using any target real-world networking hardware, [KNE](#https://github.com/openconfig/kne) (Kubernetes Network Emulator by [OpenConfig](#https://www.openconfig.net)) is used.  
 
-#### Instalación de KNE en un clúster con 4 nodos.
-A continuación se detalla los pasos a seguir para la instalación de KNE  y vrnetlab en un clúster multinodo de kubernetes: 
-- #####  Clone el repositorio KNE 
-Debe clonarse el repositorio de  [KNE](https://github.com/openconfig/kne "KNE") en la máquina que actua como el plano de control (controller) en el clúster:
-  ```bash
+The selected tools, the integration process and the scenario descriptors are detailed in the following sections.
+
+# Table of Contents
+
+  - [Prerequisites](#prerequisites)
+  - [Installation procedure](#installation-procedure)
+  - [Topology setup](#topology-setup)
+
+# Prerequisites
+
+- A Kubernetes cluster, running Kubernetes 1.13.0 or later, that does not already  have network load-balancing functionality. _Tested on a 4-node cluster, with kubernetes v1.27.3._
+- SO Resources: 
+  - Ubuntu 20.04.6 LTS. _GNU/Linux 5.4.0-156-generic x86_64_
+  - RAM: 10GB 
+  - vCPUs: 8
+- MetalLB is used as Load Balancer: https://metallb.universe.tf/installation/
+  - A cluster network configuration that can coexist with MetalLB.
+  - Some IPv4 addresses for MetalLB to hand out.
+  - When using the BGP operating mode, you will need one or more routers capable of speaking BGP.
+When using the L2 operating mode, traffic on port 7946 (TCP & UDP, other port can be configured) must be allowed between nodes, as required by memberlist. 
+- KNE: https://github.com/openconfig/kne
+- Docker is used as CRI https://docs.docker.com/engine/install/. _Tested with version 20.10.21_.
+- Python 3 (_Tested with version Python 3.8.10_).
+- Python library for NETCONF client _ncclient_: https://github.com/ncclient/ncclient
+- Python library for [`Apache Kafka`](https://kafka.apache.org/) client _confluent-kafka_: https://github.com/confluentinc/confluent-kafka-python
+- Go (_Tested with version 1.20.1_).
+- Router images license
+- A CISCO IOS XE qcow2 image file for CSR 1000v network devices must be converted and imported as a containerized image in Docker with `vrnetlab` tool, so that it can be used with ContainerLab: https://github.com/hellt/vrnetlab/tree/master/csr. _Tested with `Cisco IOS XE CSR1000v 17.3.4a` (a.k.a. `17.03.04a`) and `Cisco IOS XE CSR1000v 17.3.6` (a.k.a. `17.03.06`) models_. Already containerized `Cisco IOS XE CSR1000v` routers consume a large amount of computing resources on the local machine (on the order of 4GB of RAM and 1-2 CPU/vCPU cores per containerized router).
+
+# Installation procedure
+
+The following steps provide a guide to integrating the [hellt/vrnetlab](https://github.com/hellt/vrnetlab "hellt/vrnetlab") project on a kubernetes architecture with the [KNE](https://github.com/openconfig/kne "KNE") project, for deploying network topologies in a multi-node cluster. Vrnetlab allows to run virtual routers in docker.
+
+The installation procedure is detailed for a 4-node kubernetes cluster below.
+
+#### 1. Clone KNE repository from the cluster controller: 
+
+```bash
+ssh <user_name@controlplane_name>
 git clone https://github.com/openconfig/kne.git
- ```
-Dentro de la carpeta kne, instale el binario:
-  ```bash
-make install
- ```
--  #####  Instalar golang
-Se requiere tener instalado golang en la máquina que actua como controller en el clúster, si ya esta instalado verifique la versión actual utilizando el comando *go version*, en caso de no estar instalado:
+```
+#### 2. Within the kne folder, install the binary:
 
-Instale la nueva versión:
+```bash
+cd kne
+make install
+```
+#### 3. Install Golang:
+If golang is already installed then check the version using go version. If 1.20 or newer then golang installation is complete.
+
+Install the new version.
 
   ```bash
  curl -O https://dl.google.com/go/go1.20.1.linux-amd64.tar.gz
@@ -26,45 +62,59 @@ Instale la nueva versión:
  rm go1.20.1.linux-amd64.tar.gz  
  ```
 
- Puede considerar añadir las rutas al PATH del sistema operativo en`~/.bashrc` para facilitar el acceso y comandos relacionados con Go.
+Consider adding the export commands to ~/.bashrc or similar.
   ```bash
   export PATH=$PATH:/usr/local/go/bin
   export PATH=$PATH:$(go env GOPATH)/bin
    ```
--  #####  Instalar Docker
-Se requiere tener instalado docker en todos los nodos del clúster, en caso de no estar instalado puede hacerlo siguiendo estos [pasos](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository).
+#### 4. Install Docker:
+It is required to have docker installed on all cluster nodes, in case it is not installed follow these [steps](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository).
 
-Luego de instalarlo, para  configurar y administrar el acceso a docker, ejecute los siguientes comandos:
+Follow the post-installation steps for Linux. Specifically manager docker as a non-root user.
   ```bash
 sudo groupadd docker
 sudo usermod -aG docker $USER
    ```
-   -  #####  Implementar dependencias de KNE
-KNE proporciona el comando deploy para configurar el ingress, cni y los controladores de proveedores necesarios, para instalar estas configuraciones se utilizó el fichero [external-multinode.yaml](https://github.com/openconfig/kne/blob/main/deploy/kne/external-multinode.yaml).
+#### 5. KNE Dependencies
 
-1.  Para instalar estas dependencias en su clúster, ejecute el siguiente comando:
-  ```bash
-kne  deploy  kne/deploy/kne/external-multinode .yaml
-   ```
-2. Cree una nueva red docker para usar en el clúster:
-  ```bash
- docker network create multinode
-   ```
-#### Creación de imágenes con vrnetlab
-El proceso de creación de las imágenes debe realizarse en las máquinas que actuan como nodos trabajadores (workers) en el clúster.
-###### Cisco CSR1000v
+The `kne deploy` command is used to setup a cluster as well as ingress, CNI, and vendor controllers inside the cluster. For a multi-node cluster we will be using the `External` cluster type in the deployment config.
 
-- **Clone el repositorio hellt/vrnetlab en todos los workers**:
+External is essentially a no-op cluster type. It is assumed a k8s cluster has already been deployed. In this case, KNE does no cluster lifecycle management. KNE only setups the dependencies.
 
-```shell
-git clone https://github.com/hellt/vrnetlab.git
+The kne CLI will be run on the host of the controller. VM and the created topology will be automatically provisioned across the worker nodes depending on available resources on each. This setup can easily be scaled up by adding more worker VMs with increased resources (CPU, etc.).
+
+KNE provides the deploy command to configure the ingress, cni and the necessary vendor drivers, to install these configurations we used the file [external-multinode.yaml](https://github.com/openconfig/kne/blob/main/deploy/kne/external-multinode.yaml).
+
+- Install these dependencies, [external-multinode.yaml](https://github.com/openconfig/kne/blob/main/deploy/kne/external-multinode.yaml) file is used:
+
+```bash
+kne deploy kne/deploy/kne/external-multinode .yaml
 ```
 
-- **Modificar fichero launch.py**:
+- Create a new docker network: 
+```bash
+docker network create multinode
+```
+#### 6. Create the Docker images with vrnetlab
+The Docker image of the  router pods (i.e., `r1` and `r2`) should be built using the [`vrnetlab`](https://github.com/hellt/vrnetlab) tool before deploying the network topology (see [this link](https://github.com/hellt/vrnetlab/tree/master/csr) for more details). The `vrnetlab` tool enables packaging regular virtual machine images of network operating systems (e.g., VM-based routers) inside a container and make it runnableas as if it was a container image. For this testbed, you would need a qcow2 file with a VM-based image of the routers. The image creation process must be performed on worker nodes.
 
-Para las imagenes creada con el proyecto hellt/vrnetlab debe modificar el fichero launch.py de la imagen que desee probar, la modificación del archivo consiste en establecer él parámetro connection-mode como valor por defecto tc , con la finalidad de que este modo de conexión sea el predefinido, para que se creen y conecten las interfaces tap a la interfaces del router como máquina virtual a través de qemu, para así lograr la interconexión entre la máquina virtual y el contenedor que lo envuelve.
+In this case, **CISCO CSR1000V, CISCO XRV9K and ARISTA CEOS** router models are used.
 
-> Esto es un fragmento del fichero launch.py del csr1000v:
+#####  6.1 Prerequisites: 
+- Clone the repository hellt/vrnetlab on **all workers** nodes, for example:
+
+```bash
+ssh <worker_node_1_IP>
+git clone https://github.com/hellt/vrnetlab.git
+```
+    
+##### 6.2 Cisco CSR1000v
+
+- Change `launch.py` file:
+
+For the images created with the `hellt/vrnetlab` project the `launch.py` of the image selected must be modified. The file modification involves configuring the 'connection-mode' parameter to use the default value 'tc.' This sets 'tc' as the default connection mode, allowing for the creation and connection of tap interfaces to the router interfaces within a virtual machine through QEMU. This setup facilitates seamless interconnection between the virtual machine and the encompassing container.
+
+- `launch.py` file fragment for CSR1000V:
 
 ```shell
 if __name__ == "__main__":
@@ -76,27 +126,35 @@ if __name__ == "__main__":
         help="Connection mode to use in the datapath",
     )
 ```
-En el mismo archivo, se puede modificar la variable denominada STARTUP_CONFIG_FILE, la cual especifica la ruta dentro del contenedor donde se almacena el archivo de configuración del router. Por lo que, dicha ruta debe ser ajustada debidamente en el descriptor del escenario. 
 
-> En en este caso, se modificó el valor de la variable a “/iosxe_config.txt".
+In the same file, modify the variable named `STARTUP_CONFIG_FILE`, which specifies the path within the container where the router configuration file is stored. Therefore, this path must be appropriately adjusted in the scenario descriptor.
+
+- In this case, the value of the variable was changed to `/iosxe_config.txt`.
 
 ```shell
 STARTUP_CONFIG_FILE = "/ iosxe_config .txt"
 ```
-- **Creación de la imagen**:
+- Image creation:
 
-Una vez se ha modificado el fichero launch.py, coloque el archivo .qcow2 en el directorio csr y fuera del directorio docker y ejecúte el comando para crear la imagen como contenedor del dispositivo:
+Once the `launch.py` file has been modified, place the .qcow2 file in the csr directory, outside the docker directory, and execute the command to create the image as a container for the device:
 
   ```bash
 /vrnetlab/csr$ make docker image csr1000v-universalk9.17.03.06-serial.qcow2
 ```
-Luego de ejecutar este comando se iniciará el proceso de creación de la imagen, una vez se ha completado con éxito la ejecución, debe ver la imagen creada con el nombre de *vrnetlab/vr-csr* en el repositorio local de docker, para comprobarlo ejecutamos el siguiente comando:
+After running this command, the image creation process will commence. Once the execution has successfully completed, you should see the created image with the name `vrnetlab/vr-csr` in your local Docker repository. 
+
+- To verify this, execute the following command:
+
 ```bash
 $ docker images
 REPOSITORY           TAG            IMAGE  ID             CREATED            SIZE
 vrnetlab /vr -csr     17.03.06      b6f24d94df87       2 weeks ago      1.89 GB
 ```
-> En el descriptor utilizado en KNE para definir la topología por ejemplo "10csr.yaml", dentro del parámetro config, es necesario especificar tanto la imagen creada utilizando el proyecto hellt/vrnetlab como la ruta en la que se copiará el archivo de configuración del router con las variables config_path y config_file. De este modo:
+
+The descriptor used in KNE to define the topology, `10csr.yaml` in this case, within the config parameter, it is necessary to specify both the image created using the `hellt/vrnetlab` project and the path to which the router configuration file will be copied, 
+
+- Use the variables `config_path` and `config_file`:
+
 ```shell
   - name: r1
     vendor: CISCO
@@ -108,54 +166,57 @@ vrnetlab /vr -csr     17.03.06      b6f24d94df87       2 weeks ago      1.89 GB
       image: "docker.io/vrnetlab/vr-csr:17.03.06"
 ```
 
-###### Cisco xrv9k 
+    
+##### 6.3 Cisco XRV9K 
 
-Para la creación de esta imagen el proceso sería igual que el descrito para el modelo csr1000v.
+Same steps as for model [CSR1000](#61-cisco-csr1000v)
 
-###### Arista cEOS
+##### 6.4 Arista cEOS
 
-Para crear imágenes de contenedores a partir de un archivo en formato .tar como en el caso del contenedor cEOS, es necesario cargar la imagen en los nodos trabajadores del clúster. A continuación, se describe el proceso paso a paso:
+To create container images from a ```.tar``` file, as in the case of the cEOS container, it is necessary to load the image on all the worker nodes. The process is described below:
 
-- **Cargar la Imagen:**
+- Load the image:
 
-Primero, asegúrate de que la imagen en formato .tar (por ejemplo, cEOS-lab-4.29.2F.tar) esté presente en el directorio de trabajo de los nodos del clúster donde deseas importarla.
+First, make sure that the image in `.tar` format (e.g. `cEOS-lab-4.29.2F.tar`) is present in the working directory of the cluster nodes.
 
-- **Importar la Imagen a Docker:**
+- Convert to docker image
 
-Una vez que la imagen en formato .tar esté disponible en el directorio correcto, puedes ejecutar el siguiente comando en el mismo directorio para importarla en docker:
+Once the image in `.tar` format is available on the right folder, execute the following command from the same folder
 
 ```bash
 docker import cEOS-lab-4.29.2F.tar ceos
 ```
 
-Este comando utiliza docker import para importar la imagen de contenedor desde el archivo .tar. Le asigna un nombre al contenedor importado en Docker, en este caso, "ceos".
+This command uses docker import to import the container image from the `.tar` file. It assigns a name to the imported container in Docker, in this case, "ceos".
 
-Con estos pasos, habrás importado la imagen de contenedor al repositorio local de Docker con el nombre "ceos". Esto te permitirá utilizar la imagen en la creación y ejecución de contenedores Docker en tu clúster.
+# Topology setup example
 
+To create a topology, add the directory containing the scenario description YAML file and its corresponding configuration files. In this repository, you will find examples of topologies and configurations that you can use as a starting point. You can simply copy one of these examples and place it in the "example" folder of the appropriate vendor within KNE.
 
-#### Creación de topologías con  KNE
-Para crear una topología, debes agregar el directorio que contiene el archivo YAML de descripción del escenario y sus archivos de configuración correspondientes. En este repositorio, encontrarás ejemplos de topologías y configuraciones que puedes utilizar como punto de partida. Puedes simplemente copiar uno de estos ejemplos y colocarlo en la carpeta "example" del proveedor adecuado dentro de KNE .
+An example of how to create a topology using the `10csr.yaml` descriptor is shown below:
 
->A continuación, se presenta un ejemplo de cómo crear una topología utilizando el archivo "10csr.yaml" de este respositorio en KNE:
+![Topology](images/Topology-kne.png)
 
-1. Cree  la topología de 10 routers CSR1000V
-  ```bash
+- Create the 10 routers csr topology:
+   
+```bash
 kne create kne/examples/cisco/10csr.yaml
-   ```
+```
 
-Para eliminar la topología creada:
-  ```bash
+- Delete the scenario:
+```bash
 kne delete kne/examples/cisco/csr/10csr.yaml
-   ```
-Para verificar el correcto despliegue de los pods dentro del clúster multinodo podemos utilizar el siguiente comando:
-  ```bash
+```
+
+- See the status of the pods:
+```bash
 kubectl get pods -A -o wide -w
-   ```
-Una vez se ha creado la topología con éxito se puede acceder al dispositivo creado con vrnetlab, con las credenciales por defecto, que corresponde a l usuario y contraseña,  "vrnetlab" y“VR-netlab9” respectivamente y su dirección IP external, de esta forma.
+```
 
-> Con el comando *kubectl get svc -n namespace, se puede identificar la dirección IP externa.*
+Once the topology has been successfully deloyed, the device created with vrnetlab can be accessed with the default credentials, corresponding to the user and password, "vrnetlab" and "VR-netlab9" respectively and its external IP address.
+- Identify the External-IP: 
 
-  ```bash
+```bash
 kubectl get svc -n 10-csr
 NAME          TYPE                 CLUSTER-IP       EXTERNAL-IP  
 service-r1     LoadBalancer   10.107.96.233    172.18.0.58 
@@ -168,20 +229,23 @@ service-r4     LoadBalancer   10.109.60.252    172.18.0.51
 service-r5     LoadBalancer   10.108.26.137    172.18.0.50   
 service-r6     LoadBalancer   10.99.160.140    172.18.0.53   
 service-r7     LoadBalancer   10.97.58.27        172.18.0.56   
- ```
- Pudiendo acceder al router de la siguiente forma
-  ```bash
+```
+
+- Access to the router:
+
+```bash
 ssh vrnetlab@172.18.0.58
 Password: VR-netlab9
-   ```
+```
 
+# DoH/DDoS attack use case
 
+This topology has been deployed for a DoH/DDoS attack in a 5G network architecture emulation. The objective is to produce authentic synthetic data traffic for the purpose of training and testing AI models that can effectively identify such attacks within an actual network. In this way, the network access will be integrated with 5G CORE containerized projects as shown in the following picture.
+- References: 
+  - The free5GC is an open-source project for 5th generation (5G) mobile core networks. The ultimate goal of this project is to implement the 5G core network (5GC) defined in 3GPP Release 15 (R15) and beyond: https://free5gc.org/
+  - STGUTG (Signaling Traffic Generation/User Traffic Generation) is a software created for the generation of both signal and user traffic to be sent to a 5G network core. It is based on implementations from the Free5GC project and is distributed under an Apache 2.0 license: https://github.com/Rotchamar/STGUTG
+   
 
+![DDoS attack topology](images/ddos_topology.png)
 
-
-
-
-
-
-
-
+This use case is under the umbrella of European and Spanish project; ACROSS and B5GEMINI respectively.
