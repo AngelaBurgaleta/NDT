@@ -10,7 +10,8 @@ The selected tools, the integration process and the scenario descriptors are det
 
   - [Prerequisites](#prerequisites)
   - [Installation procedure](#installation-procedure)
-  - [Topology setup](#topology-setup)
+  - [Topology setup example](#topology-setup-example)
+  - [DoH/DDoS attack use case](#dohddos-attack-use-case)
 
 # Prerequisites
 
@@ -239,6 +240,8 @@ Password: VR-netlab9
 ```
 
 # DoH/DDoS attack use case
+
+It is challenging and costly to obtain enough data from a real production network to train Artificial Intelligence models. For this task, a network digital twin is immensely useful, since by replicating a realistic infrastructure we can run several experiments that allow us to obtain the necessary datasets. 
 
 This topology has been deployed for a DoH/DDoS attack in a 5G network architecture emulation. The objective is to produce authentic synthetic data traffic for the purpose of training and testing AI models that can effectively identify such attacks within an actual network. In this way, the network access will be integrated with 5G CORE containerized projects as shown in the following picture.
 - References: 
